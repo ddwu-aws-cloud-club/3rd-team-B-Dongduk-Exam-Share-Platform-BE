@@ -17,16 +17,14 @@ spring:
 app:
   upload-dir: ./uploads
 
-cloud:
-  aws:
-    region: ap-northeast-2
-    credentials:
-      access-key: ${AWS_ACCESS_KEY:}
-      secret-key: ${AWS_SECRET_KEY:}
-    cognito:
-      user-pool-id: ${COGNITO_USER_POOL_ID:}
-      client-id: ${COGNITO_CLIENT_ID:}
-    s3:
-      bucket: somshare-pdf-bucket
-    ses:
-      from-email: noreply@somshare.com
+aws:
+  region: ap-northeast-2
+  access-key: ${AWS_ACCESS_KEY:}
+  secret-key: ${AWS_SECRET_KEY:}
+  cognito:
+    user-pool-id: ${COGNITO_USER_POOL_ID:}
+    client-id: ${COGNITO_CLIENT_ID:}
+  s3:
+    bucket: somshare-pdf-bucket
+  ses:
+    from-email: ${SES_FROM_EMAIL:noreply@somshare.com}

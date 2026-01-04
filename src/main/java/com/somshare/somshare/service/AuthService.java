@@ -42,9 +42,9 @@ public class AuthService {
     @Transactional
     public SignupResponse signup(SignupRequest request) {
         // 이메일 인증 확인
-        boolean isEmailVerified = verificationRepository.findByEmailAndVerifiedFalse(request.getEmail())
-                .map(verification -> verification.isVerified())
-                .orElse(false);
+        boolean isEmailVerified = verificationRepository
+                .findByEmailAndVerifiedTrue(request.getEmail())
+                .isPresent();
 
         if (!isEmailVerified) {
             throw new EmailNotVerifiedBeforeSignupException();

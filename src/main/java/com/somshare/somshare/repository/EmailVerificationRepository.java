@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface EmailVerificationRepository extends JpaRepository<EmailVerification, Long> {
     Optional<EmailVerification> findByEmailAndVerifiedFalse(String email);
+    Optional<EmailVerification> findByEmailAndVerifiedTrue(String email);
     Optional<EmailVerification> findByEmailAndCodeAndVerifiedFalse(String email, String code);
 }

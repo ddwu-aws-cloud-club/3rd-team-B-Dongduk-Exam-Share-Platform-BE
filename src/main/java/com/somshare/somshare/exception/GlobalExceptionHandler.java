@@ -45,8 +45,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailNotVerifiedBeforeSignupException.class)
     public ResponseEntity<ErrorResponse> handleEmailNotVerifiedBeforeSignup(EmailNotVerifiedBeforeSignupException e) {
-        ErrorResponse error = ErrorResponse.of(e.getMessage(), HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        ErrorResponse error = ErrorResponse.of(e.getMessage(), HttpStatus.FORBIDDEN.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

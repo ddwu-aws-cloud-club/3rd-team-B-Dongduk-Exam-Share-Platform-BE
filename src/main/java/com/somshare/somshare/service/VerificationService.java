@@ -50,7 +50,7 @@ public class VerificationService {
 
         verificationRepository.save(verification);
 
-        // 이메일 전송 (현재는 콘솔 로그)
+        // 이메일 전송 (AWS SES 또는 콘솔 로그)
         emailService.sendVerificationCode(email, code);
     }
 
@@ -71,10 +71,9 @@ public class VerificationService {
     }
 
     public boolean isEmailVerified(String email) {
-        return verificationRepository.findByEmailAndVerifiedFalse(email)
-                .map(EmailVerification::isVerified)
-                .orElse(false);
+        return verificationRepository.findByEmailAndVerifiedTrue(email).isPresent();
     }
+
 
     private String generateVerificationCode() {
         Random random = new Random();
