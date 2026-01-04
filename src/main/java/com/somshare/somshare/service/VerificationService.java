@@ -71,10 +71,9 @@ public class VerificationService {
     }
 
     public boolean isEmailVerified(String email) {
-        return verificationRepository.findByEmailAndVerifiedFalse(email)
-                .map(EmailVerification::isVerified)
-                .orElse(false);
+        return verificationRepository.findByEmailAndVerifiedTrue(email).isPresent();
     }
+
 
     private String generateVerificationCode() {
         Random random = new Random();
