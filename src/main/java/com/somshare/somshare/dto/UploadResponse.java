@@ -6,7 +6,5 @@ public record UploadResponse(
         String originalName,
         String storedName,
         String url,
-        long size,
-        String contentType,
-        LocalDateTime createdAt
+        long size
 ) {}

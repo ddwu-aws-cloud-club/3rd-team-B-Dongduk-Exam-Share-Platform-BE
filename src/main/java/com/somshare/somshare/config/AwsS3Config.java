@@ -3,12 +3,11 @@ package com.somshare.somshare.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-
-import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
@@ -20,18 +19,21 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 @Profile({"dev", "prod"})
 public class AwsS3Config {
 
-    @Value("${aws.s3.access-key:}")
+    @Value("${aws.s3.access-key}")
     private String accessKey;
 
-    @Value("${aws.s3.secret-key:}")
+    @Value("${aws.s3.secret-key}")
     private String secretKey;
 
-    @Value("${aws.region:ap-northeast-2}")
+    @Value("${aws.region}")
     private String region;
 
-    @Value("${aws.s3.bucket:}")
+    @Value("${aws.s3.bucket}")
     private String bucketName;
 
+    /**
+     * S3 클라이언트 생성
+     */
     @Bean
     public S3Client s3Client() {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
@@ -42,6 +44,9 @@ public class AwsS3Config {
                 .build();
     }
 
+    /**
+     * Presigned URL 발급용 Presigner
+     */
     @Bean
     public S3Presigner s3Presigner() {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
