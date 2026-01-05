@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -37,6 +39,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/profile-setup")
+    public ResponseEntity<ProfileSetupResponse> setupProfile(
+            @RequestParam("email") String email,
+            @Valid @ModelAttribute ProfileSetupRequest request
+    ) throws IOException {
+        ProfileSetupResponse response = authService.setupProfile(email, request);
         return ResponseEntity.ok(response);
     }
 }

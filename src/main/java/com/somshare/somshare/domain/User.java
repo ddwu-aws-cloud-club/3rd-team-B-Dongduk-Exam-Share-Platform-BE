@@ -32,6 +32,18 @@ public class User {
     @Column(nullable = false)
     private Boolean isVerified = false;
 
+    @Column(length = 50)
+    private String nickname;
+
+    @Column(length = 100)
+    private String college;
+
+    @Column(length = 100)
+    private String major;
+
+    @Column(length = 500)
+    private String profileImageUrl;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -40,11 +52,16 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Builder
-    public User(String email, String password, Integer points, Boolean isVerified) {
+    public User(String email, String password, Integer points, Boolean isVerified,
+                String nickname, String college, String major, String profileImageUrl) {
         this.email = email;
         this.password = password;
         this.points = points != null ? points : 0;
         this.isVerified = isVerified != null ? isVerified : false;
+        this.nickname = nickname;
+        this.college = college;
+        this.major = major;
+        this.profileImageUrl = profileImageUrl;
     }
 
     public void verify() {
@@ -60,5 +77,14 @@ public class User {
             throw new IllegalStateException("포인트가 부족합니다.");
         }
         this.points -= points;
+    }
+
+    public void updateProfile(String nickname, String college, String major, String profileImageUrl) {
+        this.nickname = nickname;
+        this.college = college;
+        this.major = major;
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
     }
 }

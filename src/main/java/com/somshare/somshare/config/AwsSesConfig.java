@@ -12,10 +12,10 @@ import software.amazon.awssdk.services.ses.SesClient;
 @Configuration
 public class AwsSesConfig {
 
-    @Value("${aws.access-key:}")
+    @Value("${aws.ses.access-key:}")
     private String accessKey;
 
-    @Value("${aws.secret-key:}")
+    @Value("${aws.ses.secret-key:}")
     private String secretKey;
 
     @Value("${aws.region:ap-northeast-2}")
