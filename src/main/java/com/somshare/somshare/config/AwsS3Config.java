@@ -8,13 +8,16 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
+import org.springframework.context.annotation.Profile;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+
 /**
  * AWS S3 설정
  * - 프로필 이미지, 시험 파일 등을 S3에 저장할 때 사용
- * - 현재는 로컬 파일 시스템 사용 중 (LocalFileStorageService)
- * - 나중에 S3로 전환할 때 이 설정을 활성화하면 됨
+ * - dev/prod 프로파일에서만 활성화
  */
 @Configuration
+@Profile({"dev", "prod"})
 public class AwsS3Config {
 
     @Value("${aws.s3.access-key:}")
@@ -29,16 +32,21 @@ public class AwsS3Config {
     @Value("${aws.s3.bucket:}")
     private String bucketName;
 
-    /**
-     * S3 클라이언트 생성
-     * - 주석 처리: 현재는 사용하지 않음 (로컬 파일 저장)
-     * - S3 사용 시 @Bean 주석 해제하고 LocalFileStorageService를 S3FileStorageService로 교체
-     */
-    // @Bean
+    @Bean
     public S3Client s3Client() {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         return S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                .build();
+    }
+
+    @Bean
+    public S3Presigner s3Presigner() {
+        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+
+        return S3Presigner.builder()
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .build();

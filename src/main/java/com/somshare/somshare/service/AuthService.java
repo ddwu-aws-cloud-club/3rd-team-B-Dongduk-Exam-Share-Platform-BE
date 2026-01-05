@@ -35,7 +35,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final EmailVerificationRepository verificationRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final LocalFileStorageService fileStorageService;
+    private final FileStorageService fileStorageService;
 
     @Value("${jwt.secret:somshare-secret-key-for-jwt-token-generation-minimum-256-bits}")
     private String jwtSecretKey;
@@ -102,7 +102,7 @@ public class AuthService {
         // 프로필 이미지 업로드 (있는 경우)
         String profileImageUrl = null;
         if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
-            LocalFileStorageService.StoredFile storedFile = fileStorageService.storeImage(request.getProfileImage());
+            FileStorageService.StoredFile storedFile = fileStorageService.storeImage(request.getProfileImage());
             profileImageUrl = storedFile.url();
         }
 
