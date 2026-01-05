@@ -1,4 +1,14 @@
+server:
+  port: 8080
+
+app:
+  upload-dir: uploads
+
 spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   application:
     name: somshare
   profiles:
