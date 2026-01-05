@@ -71,7 +71,7 @@ public class VerificationService {
     }
 
     public boolean isEmailVerified(String email) {
-        return verificationRepository.findByEmailAndVerifiedTrue(email).isPresent();
+        return verificationRepository.findTopByEmailAndVerifiedTrueOrderByCreatedAtDesc(email).isPresent();
     }
 
 

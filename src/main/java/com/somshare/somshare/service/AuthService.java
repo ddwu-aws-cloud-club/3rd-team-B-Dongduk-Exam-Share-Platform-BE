@@ -3,6 +3,8 @@ package com.somshare.somshare.service;
 import com.somshare.somshare.domain.User;
 import com.somshare.somshare.dto.LoginRequest;
 import com.somshare.somshare.dto.LoginResponse;
+import com.somshare.somshare.dto.ProfileSetupRequest;
+import com.somshare.somshare.dto.ProfileSetupResponse;
 import com.somshare.somshare.dto.SignupRequest;
 import com.somshare.somshare.dto.SignupResponse;
 import com.somshare.somshare.exception.DuplicateEmailException;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
@@ -32,6 +35,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final EmailVerificationRepository verificationRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final LocalFileStorageService fileStorageService;
 
     @Value("${jwt.secret:somshare-secret-key-for-jwt-token-generation-minimum-256-bits}")
     private String jwtSecretKey;
@@ -43,7 +47,7 @@ public class AuthService {
     public SignupResponse signup(SignupRequest request) {
         // 이메일 인증 확인
         boolean isEmailVerified = verificationRepository
-                .findByEmailAndVerifiedTrue(request.getEmail())
+                .findTopByEmailAndVerifiedTrueOrderByCreatedAtDesc(request.getEmail())
                 .isPresent();
 
         if (!isEmailVerified) {
@@ -87,6 +91,30 @@ public class AuthService {
         String token = generateToken(user);
 
         return LoginResponse.of(token, user.getEmail(), user.getPoints(), user.getIsVerified());
+    }
+
+    @Transactional
+    public ProfileSetupResponse setupProfile(String email, ProfileSetupRequest request) throws IOException {
+        // 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+
+        // 프로필 이미지 업로드 (있는 경우)
+        String profileImageUrl = null;
+        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
+            LocalFileStorageService.StoredFile storedFile = fileStorageService.storeImage(request.getProfileImage());
+            profileImageUrl = storedFile.url();
+        }
+
+        // 프로필 업데이트
+        user.updateProfile(
+                request.getNickname(),
+                request.getCollege(),
+                request.getMajor(),
+                profileImageUrl
+        );
+
+        return ProfileSetupResponse.of("프로필 설정이 완료되었습니다.");
     }
 
     private String generateToken(User user) {
