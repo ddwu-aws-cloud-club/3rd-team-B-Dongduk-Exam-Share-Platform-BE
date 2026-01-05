@@ -3,8 +3,8 @@ package com.somshare.somshare.controller;
 import com.somshare.somshare.dto.PresignedUrlRequest;
 import com.somshare.somshare.dto.PresignedUrlResponse;
 import com.somshare.somshare.dto.UploadResponse;
-import com.somshare.somshare.service.FileStorageService;
 import com.somshare.somshare.service.PresignedUrlService;
+import com.somshare.somshare.service.S3FileStorageService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +15,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/files")
 public class FileController {
 
-    private final FileStorageService storageService;
+    private final S3FileStorageService storageService;
 
     @Autowired(required = false)
     private PresignedUrlService presignedUrlService;
 
-    public FileController(FileStorageService storageService) {
+    public FileController(S3FileStorageService storageService) {
         this.storageService = storageService;
     }
 
@@ -31,19 +31,17 @@ public class FileController {
                 stored.originalName(),
                 stored.storedName(),
                 stored.url(),
-                stored.size(),
-                stored.contentType(),
-                stored.createdAt()
+                stored.size()
         ));
     }
+
 
     @PostMapping("/presigned-url")
     public ResponseEntity<PresignedUrlResponse> generatePresignedUrl(
             @Valid @RequestBody PresignedUrlRequest request
     ) {
         if (presignedUrlService == null) {
-            return ResponseEntity.status(501)
-                    .body(null); // simple/local 프로파일에서는 지원하지 않음
+            return ResponseEntity.status(501).body(null); // simple/local 프로파일에서는 지원하지 않음
         }
 
         PresignedUrlResponse response = presignedUrlService.generatePresignedUrl(request);
