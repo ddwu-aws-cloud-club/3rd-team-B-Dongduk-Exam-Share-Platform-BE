@@ -1,12 +1,12 @@
 package com.somshare.somshare.controller;
 
+import com.somshare.somshare.dto.ExamPostCreateRequest;
 import com.somshare.somshare.dto.ExamPostResponse;
 import com.somshare.somshare.service.ExamPostService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import com.somshare.somshare.dto.ExamPostCreateRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -35,6 +35,10 @@ public class ExamPostController {
     ) {
         return examPostService.getExamPostDetail(departmentId, postId);
     }
+
+    /**
+     * 족보 게시글 작성
+     */
     @PostMapping("/{departmentId}/exam-posts")
     @ResponseStatus(HttpStatus.CREATED)
     public ExamPostResponse createExamPost(
@@ -44,4 +48,15 @@ public class ExamPostController {
         return examPostService.createExamPost(departmentId, request);
     }
 
+    /**
+     * 족보 게시글 삭제
+     */
+    @DeleteMapping("/{departmentId}/exam-posts/{postId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteExamPost(
+            @PathVariable Long departmentId,
+            @PathVariable Long postId
+    ) {
+        examPostService.deleteExamPost(departmentId, postId);
+    }
 }

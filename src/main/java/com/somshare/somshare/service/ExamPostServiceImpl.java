@@ -59,4 +59,13 @@ public class ExamPostServiceImpl implements ExamPostService {
         ExamPost saved = examPostRepository.save(post);
         return ExamPostResponse.from(saved);
     }
+
+    @Override
+    @Transactional
+    public void deleteExamPost(Long departmentId, Long postId) {
+        ExamPost post = examPostRepository.findByIdAndDepartment_Id(postId, departmentId)
+                .orElseThrow(() -> new IllegalArgumentException("ExamPost not found"));
+
+        examPostRepository.delete(post);
+    }
 }
