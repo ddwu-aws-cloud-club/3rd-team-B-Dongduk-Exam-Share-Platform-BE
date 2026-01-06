@@ -46,4 +46,9 @@ public class ExamPost {
         this.department = department;
         this.fileUrl = fileUrl;
     }
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

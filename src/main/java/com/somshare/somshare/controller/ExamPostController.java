@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import com.somshare.somshare.dto.ExamPostUpdateRequest;
 
 import java.util.List;
 
@@ -59,4 +60,17 @@ public class ExamPostController {
     ) {
         examPostService.deleteExamPost(departmentId, postId);
     }
+
+    /**
+     * 족보 게시글 수정
+     */
+    @PatchMapping("/{departmentId}/exam-posts/{postId}")
+    public ExamPostResponse updateExamPost(
+            @PathVariable Long departmentId,
+            @PathVariable Long postId,
+            @RequestBody @Valid ExamPostUpdateRequest request
+    ) {
+        return examPostService.updateExamPost(departmentId, postId, request);
+    }
+
 }
