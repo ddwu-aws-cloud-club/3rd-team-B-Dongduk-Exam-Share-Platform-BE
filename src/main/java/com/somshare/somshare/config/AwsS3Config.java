@@ -16,19 +16,19 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  * - dev/prod 프로파일에서만 활성화
  */
 @Configuration
-@Profile({"dev", "prod"})
+@Profile({"simple", "dev", "prod"})
 public class AwsS3Config {
 
-    @Value("${aws.s3.access-key}")
+    @Value("${aws.s3.access-key:dummy}")
     private String accessKey;
 
-    @Value("${aws.s3.secret-key}")
+    @Value("${aws.s3.secret-key:dummy}")
     private String secretKey;
 
-    @Value("${aws.region}")
+    @Value("${aws.region:ap-northeast-2}")
     private String region;
 
-    @Value("${aws.s3.bucket}")
+    @Value("${aws.s3.bucket:dummy-bucket}")
     private String bucketName;
 
     /**
