@@ -4,6 +4,9 @@ import com.somshare.somshare.dto.ExamPostResponse;
 import com.somshare.somshare.service.ExamPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import com.somshare.somshare.dto.ExamPostCreateRequest;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -32,4 +35,13 @@ public class ExamPostController {
     ) {
         return examPostService.getExamPostDetail(departmentId, postId);
     }
+    @PostMapping("/{departmentId}/exam-posts")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ExamPostResponse createExamPost(
+            @PathVariable Long departmentId,
+            @RequestBody @Valid ExamPostCreateRequest request
+    ) {
+        return examPostService.createExamPost(departmentId, request);
+    }
+
 }
