@@ -14,8 +14,22 @@ public class ExamPostController {
 
     private final ExamPostService examPostService;
 
+    /**
+     * 학과별 족보 게시글 목록 조회
+     */
     @GetMapping("/{departmentId}/exam-posts")
     public List<ExamPostResponse> getExamPosts(@PathVariable Long departmentId) {
         return examPostService.getExamPostsByDepartment(departmentId);
+    }
+
+    /**
+     * 족보 게시글 상세 조회
+     */
+    @GetMapping("/{departmentId}/exam-posts/{postId}")
+    public ExamPostResponse getExamPostDetail(
+            @PathVariable Long departmentId,
+            @PathVariable Long postId
+    ) {
+        return examPostService.getExamPostDetail(departmentId, postId);
     }
 }

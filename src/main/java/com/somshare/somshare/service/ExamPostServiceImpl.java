@@ -17,9 +17,19 @@ public class ExamPostServiceImpl implements ExamPostService {
 
     @Override
     public List<ExamPostResponse> getExamPostsByDepartment(Long departmentId) {
-        return examPostRepository.findByDepartment_IdOrderByCreatedAtDesc(departmentId)
+        return examPostRepository
+                .findByDepartment_IdOrderByCreatedAtDesc(departmentId)
                 .stream()
                 .map(ExamPostResponse::from)
                 .toList();
     }
+
+    @Override
+    public ExamPostResponse getExamPostDetail(Long departmentId, Long postId) {
+        return examPostRepository
+                .findByIdAndDepartment_Id(postId, departmentId)
+                .map(ExamPostResponse::from)
+                .orElseThrow(() -> new IllegalArgumentException("ExamPost not found"));
+    }
 }
+
