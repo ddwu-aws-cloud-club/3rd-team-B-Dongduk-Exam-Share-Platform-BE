@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+// ExamPost.java
 @Entity
 @Getter
 @NoArgsConstructor
@@ -31,6 +32,9 @@ public class ExamPost {
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
+    // ✅ 추가
+    private String fileKey;
+
     private String fileUrl;
 
     @CreationTimestamp
@@ -39,16 +43,24 @@ public class ExamPost {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public ExamPost(String title, String content, User uploader, Department department, String fileUrl) {
+    // ✅ 생성자 변경 (fileKey 추가)
+    public ExamPost(String title, String content, User uploader, Department department, String fileKey, String fileUrl) {
         this.title = title;
         this.content = content;
         this.uploader = uploader;
         this.department = department;
+        this.fileKey = fileKey;
         this.fileUrl = fileUrl;
     }
 
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
+    }
+
+    // ✅ 파일 교체용
+    public void updateFile(String fileKey, String fileUrl) {
+        this.fileKey = fileKey;
+        this.fileUrl = fileUrl;
     }
 }

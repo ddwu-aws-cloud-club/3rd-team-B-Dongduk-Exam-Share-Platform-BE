@@ -1,14 +1,18 @@
 package com.somshare.somshare.controller;
 
+import com.somshare.somshare.dto.ExamPostCreateForm;
 import com.somshare.somshare.dto.ExamPostCreateRequest;
 import com.somshare.somshare.dto.ExamPostResponse;
+import com.somshare.somshare.dto.ExamPostUpdateRequest;
 import com.somshare.somshare.service.ExamPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import com.somshare.somshare.dto.ExamPostUpdateRequest;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -38,16 +42,23 @@ public class ExamPostController {
     }
 
     /**
-     * 족보 게시글 작성
+     * ✅ 족보 게시글 작성 (Swagger 친화)
+     * - multipart/form-data
+     * - title/content/uploaderId 는 폼 필드로 입력
+     * - pdf는 파일로 선택
      */
-    @PostMapping("/{departmentId}/exam-posts")
+    @PostMapping(value = "/{departmentId}/exam-posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ExamPostResponse createExamPost(
             @PathVariable Long departmentId,
-            @RequestBody @Valid ExamPostCreateRequest request
-    ) {
-        return examPostService.createExamPost(departmentId, request);
+            @ModelAttribute @Valid ExamPostCreateForm form
+    ) throws IOException {
+
+        // 기존 서비스 DTO로 변환 (서비스 로직 그대로 재사용)
+        ExamPostCreateRequest request = new ExamPostCreateRequest(form.getTitle(), form.getContent(), form.getUploaderId());
+        return examPostService.createExamPost(departmentId, request, form.getPdf());
     }
+
 
     /**
      * 족보 게시글 삭제
@@ -62,15 +73,18 @@ public class ExamPostController {
     }
 
     /**
-     * 족보 게시글 수정
+     * ✅ 족보 게시글 수정 (Swagger 친화)
+     * - multipart/form-data
+     * - title/content는 폼 필드로 입력
+     * - pdf를 보내면 교체(서비스 로직에서 처리)
      */
-    @PatchMapping("/{departmentId}/exam-posts/{postId}")
+    @PatchMapping(value = "/{departmentId}/exam-posts/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ExamPostResponse updateExamPost(
             @PathVariable Long departmentId,
             @PathVariable Long postId,
-            @RequestBody @Valid ExamPostUpdateRequest request
-    ) {
-        return examPostService.updateExamPost(departmentId, postId, request);
+            @ModelAttribute @Valid ExamPostUpdateRequest request,
+            @RequestPart(value = "pdf", required = false) MultipartFile pdf
+    ) throws IOException {
+        return examPostService.updateExamPost(departmentId, postId, request, pdf);
     }
-
 }
