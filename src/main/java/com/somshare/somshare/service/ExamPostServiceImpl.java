@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +27,11 @@ public class ExamPostServiceImpl implements ExamPostService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
 
-    // ✅ 추가
+    // ✅ 주입은 유지 (나중에 S3 다시 켤 때 그대로 사용)
     private final S3FileStorageService s3FileStorageService;
+
+    // ✅ 로컬에서만 S3를 끄고 싶으면 true로
+    private static final boolean DISABLE_S3_FOR_NOW = true;
 
     @Override
     public List<ExamPostResponse> getExamPostsByDepartment(Long departmentId) {
@@ -44,22 +48,23 @@ public class ExamPostServiceImpl implements ExamPostService {
                 .orElseThrow(() -> new IllegalArgumentException("ExamPost not found"));
     }
 
-    // ✅ 시그니처 변경 + S3 업로드
-    @Override
     @Transactional
-    public ExamPostResponse createExamPost(Long departmentId, ExamPostCreateRequest request, MultipartFile pdf) throws IOException {
+    public ExamPostResponse createExamPost(Long departmentId,
+                                           ExamPostCreateRequest request,
+                                           MultipartFile pdf,
+                                           String username) throws IOException {
 
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found"));
 
-        User uploader = userRepository.findById(request.getUploaderId())
+        User uploader = userRepository.findByEmail(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String fileKey = null;
         String fileUrl = null;
 
         if (pdf != null && !pdf.isEmpty()) {
-            S3FileStorageService.StoredFile stored = s3FileStorageService.storePdf(pdf);
+            var stored = s3FileStorageService.storePdf(pdf);
             fileKey = stored.storedName();
             fileUrl = stored.url();
         }
@@ -73,9 +78,9 @@ public class ExamPostServiceImpl implements ExamPostService {
                 fileUrl
         );
 
-        ExamPost saved = examPostRepository.save(post);
-        return ExamPostResponse.from(saved);
+        return ExamPostResponse.from(examPostRepository.save(post));
     }
+
 
     @Override
     @Transactional
@@ -83,13 +88,12 @@ public class ExamPostServiceImpl implements ExamPostService {
         ExamPost post = examPostRepository.findByIdAndDepartment_Id(postId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("ExamPost not found"));
 
-        // (선택) S3 삭제까지 하려면 아래 E) 추가 후 사용
-        // if (post.getFileKey() != null) s3FileStorageService.delete(post.getFileKey());
+        // (선택) S3 삭제는 나중에 S3 켜질 때
+        // if (!DISABLE_S3_FOR_NOW && post.getFileKey() != null) s3FileStorageService.delete(post.getFileKey());
 
         examPostRepository.delete(post);
     }
 
-    // ✅ 시그니처 변경 + pdf 오면 교체
     @Override
     @Transactional
     public ExamPostResponse updateExamPost(Long departmentId, Long postId, ExamPostUpdateRequest request, MultipartFile pdf) throws IOException {
@@ -100,13 +104,18 @@ public class ExamPostServiceImpl implements ExamPostService {
         post.update(request.getTitle(), request.getContent());
 
         if (pdf != null && !pdf.isEmpty()) {
-            String oldKey = post.getFileKey();
+            if (DISABLE_S3_FOR_NOW) {
+                String newKey = "mock/pdfs/" + UUID.randomUUID() + "-" + pdf.getOriginalFilename();
+                String newUrl = "LOCAL-MOCK://" + pdf.getOriginalFilename();
+                post.updateFile(newKey, newUrl);
+            } else {
+                String oldKey = post.getFileKey();
 
-            S3FileStorageService.StoredFile stored = s3FileStorageService.storePdf(pdf);
-            post.updateFile(stored.storedName(), stored.url());
+                S3FileStorageService.StoredFile stored = s3FileStorageService.storePdf(pdf);
+                post.updateFile(stored.storedName(), stored.url());
 
-            // (선택) S3 삭제까지 하려면 아래 E) 추가 후 사용
-            // if (oldKey != null) s3FileStorageService.delete(oldKey);
+                // (선택) if (oldKey != null) s3FileStorageService.delete(oldKey);
+            }
         }
 
         return ExamPostResponse.from(post);

@@ -51,13 +51,18 @@ public class ExamPostController {
     @ResponseStatus(HttpStatus.CREATED)
     public ExamPostResponse createExamPost(
             @PathVariable Long departmentId,
-            @ModelAttribute @Valid ExamPostCreateForm form
+            @ModelAttribute @Valid ExamPostCreateForm form,
+            java.security.Principal principal
     ) throws IOException {
+        ExamPostCreateRequest request = new ExamPostCreateRequest(form.getTitle(), form.getContent());
 
-        // 기존 서비스 DTO로 변환 (서비스 로직 그대로 재사용)
-        ExamPostCreateRequest request = new ExamPostCreateRequest(form.getTitle(), form.getContent(), form.getUploaderId());
-        return examPostService.createExamPost(departmentId, request, form.getPdf());
+        // ✅ 로그인한 사용자 식별자(username/email)
+        String username = principal.getName();
+
+        return examPostService.createExamPost(departmentId, request, form.getPdf(), username);
     }
+
+
 
 
     /**

@@ -17,8 +17,5 @@ public class ExamPostCreateForm {
 
     private String content;
 
-    @NotNull
-    private Long uploaderId;
-
     private MultipartFile pdf;
 }

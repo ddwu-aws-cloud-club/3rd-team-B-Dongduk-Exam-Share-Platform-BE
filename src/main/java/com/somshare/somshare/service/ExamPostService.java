@@ -15,7 +15,11 @@ public interface ExamPostService {
     ExamPostResponse getExamPostDetail(Long departmentId, Long postId);
 
     // ✅ pdf 파라미터 추가
-    ExamPostResponse createExamPost(Long departmentId, ExamPostCreateRequest request, MultipartFile pdf) throws IOException;
+    ExamPostResponse createExamPost(Long departmentId,
+                                    ExamPostCreateRequest request,
+                                    MultipartFile pdf,
+                                    String username) throws IOException;
+
 
     void deleteExamPost(Long departmentId, Long postId);
 
