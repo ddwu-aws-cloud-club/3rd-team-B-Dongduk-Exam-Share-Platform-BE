@@ -1,5 +1,6 @@
 package com.somshare.somshare.service;
 
+import com.somshare.somshare.util.LogMaskingUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,9 +36,9 @@ public class EmailService {
         // dev 프로필일 경우 실제 AWS SES로 전송
         try {
             sendEmailViaSES(toEmail, code);
-            log.info("이메일 전송 성공: {}", toEmail);
+            log.info("이메일 전송 성공: {}", LogMaskingUtil.maskEmail(toEmail));
         } catch (Exception e) {
-            log.error("이메일 전송 실패: {}", toEmail, e);
+            log.error("이메일 전송 실패: {}", LogMaskingUtil.maskEmail(toEmail), e);
             // 실패 시 콘솔에 로그 출력 (개발 환경 백업)
             logVerificationCodeToConsole(toEmail, code);
             throw new RuntimeException("이메일 전송에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -125,10 +126,16 @@ public class EmailService {
     }
 
     private void logVerificationCodeToConsole(String email, String code) {
+        String maskedEmail = LogMaskingUtil.maskEmail(email);
+
+        // 인증 코드는 민감정보로 간주 → 원문 로그 금지
+        // (원하면 끝 2자리만 노출: "****" + code.substring(code.length()-2))
+        String maskedCode = "******";
+
         log.info("========================================");
         log.info("📧 이메일 인증 코드 전송 (콘솔 모드)");
-        log.info("받는 사람: {}", email);
-        log.info("인증 코드: {}", code);
+        log.info("받는 사람: {}", maskedEmail);
+        log.info("인증 코드: {}", maskedCode);
         log.info("유효 시간: 5분");
         log.info("========================================");
     }
