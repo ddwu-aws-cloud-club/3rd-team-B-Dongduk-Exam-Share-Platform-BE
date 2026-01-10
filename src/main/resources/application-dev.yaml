@@ -35,3 +35,5 @@ logging:
     root: INFO
     com.somshare: INFO
     org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{requestId}] %logger{36} - %msg%n"

@@ -2,6 +2,7 @@ package com.somshare.somshare.service;
 
 import com.somshare.somshare.config.AwsS3Config;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class S3FileStorageService {
@@ -26,66 +28,136 @@ public class S3FileStorageService {
     );
 
     public StoredFile storePdf(MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("파일이 비어있습니다.");
+        long start = System.currentTimeMillis();
+
+        String originalName = safeName(file == null ? null : file.getOriginalFilename());
+        Long size = file == null ? null : file.getSize();
+        String contentType = file == null ? null : file.getContentType();
+
+        log.info("[UPLOAD_PDF_REQ] filename={} size={} contentType={}", originalName, size, contentType);
+
+        try {
+            if (file == null || file.isEmpty()) {
+                log.warn("[UPLOAD_PDF_REJECT] reason=empty filename={}", originalName);
+                throw new IllegalArgumentException("파일이 비어있습니다.");
+            }
+
+            String cleanedOriginal = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
+
+            boolean mimeOk = contentType != null && ALLOWED_PDF_MIME.contains(contentType);
+            boolean extOk = cleanedOriginal.toLowerCase().endsWith(".pdf");
+
+            if (!mimeOk && !extOk) {
+                log.warn("[UPLOAD_PDF_REJECT] reason=type_not_allowed filename={} contentType={}",
+                        safeName(cleanedOriginal), contentType);
+                throw new IllegalArgumentException("PDF 파일만 업로드할 수 있습니다.");
+            }
+
+            StoredFile stored = uploadToS3(file, "pdfs/", contentType);
+
+            log.info("[UPLOAD_PDF_OK] storedName={} size={} elapsedMs={}",
+                    stored.storedName(), stored.size(), System.currentTimeMillis() - start);
+
+            return stored;
+
+        } catch (Exception e) {
+            log.error("[UPLOAD_PDF_FAIL] filename={} elapsedMs={}", originalName, System.currentTimeMillis() - start, e);
+            throw e;
         }
-
-        String contentType = file.getContentType();
-        String originalName = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
-
-        boolean mimeOk = contentType != null && ALLOWED_PDF_MIME.contains(contentType);
-        boolean extOk = originalName.toLowerCase().endsWith(".pdf");
-
-        if (!mimeOk && !extOk) {
-            throw new IllegalArgumentException("PDF 파일만 업로드할 수 있습니다.");
-        }
-
-        return uploadToS3(file, "pdfs/", contentType);
     }
 
     public StoredFile storeImage(MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("파일이 비어있습니다.");
+        long start = System.currentTimeMillis();
+
+        String originalName = safeName(file == null ? null : file.getOriginalFilename());
+        Long size = file == null ? null : file.getSize();
+        String contentType = file == null ? null : file.getContentType();
+
+        log.info("[UPLOAD_IMG_REQ] filename={} size={} contentType={}", originalName, size, contentType);
+
+        try {
+            if (file == null || file.isEmpty()) {
+                log.warn("[UPLOAD_IMG_REJECT] reason=empty filename={}", originalName);
+                throw new IllegalArgumentException("파일이 비어있습니다.");
+            }
+
+            String cleanedOriginal = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
+
+            boolean mimeOk = contentType != null && ALLOWED_IMAGE_MIME.contains(contentType);
+            boolean extOk = cleanedOriginal.toLowerCase().matches(".*\\.(jpg|jpeg|png|gif|webp)$");
+
+            if (!mimeOk && !extOk) {
+                log.warn("[UPLOAD_IMG_REJECT] reason=type_not_allowed filename={} contentType={}",
+                        safeName(cleanedOriginal), contentType);
+                throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다. (jpg, jpeg, png, gif, webp)");
+            }
+
+            // 파일 크기 제한 (5MB)
+            if (file.getSize() > 5 * 1024 * 1024) {
+                log.warn("[UPLOAD_IMG_REJECT] reason=size_too_large filename={} size={}",
+                        safeName(cleanedOriginal), file.getSize());
+                throw new IllegalArgumentException("이미지 크기는 5MB 이하여야 합니다.");
+            }
+
+            StoredFile stored = uploadToS3(file, "profiles/", contentType);
+
+            log.info("[UPLOAD_IMG_OK] storedName={} size={} elapsedMs={}",
+                    stored.storedName(), stored.size(), System.currentTimeMillis() - start);
+
+            return stored;
+
+        } catch (Exception e) {
+            log.error("[UPLOAD_IMG_FAIL] filename={} elapsedMs={}", originalName, System.currentTimeMillis() - start, e);
+            throw e;
         }
-
-        String contentType = file.getContentType();
-        String originalName = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
-
-        boolean mimeOk = contentType != null && ALLOWED_IMAGE_MIME.contains(contentType);
-        boolean extOk = originalName.toLowerCase().matches(".*\\.(jpg|jpeg|png|gif|webp)$");
-
-        if (!mimeOk && !extOk) {
-            throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다. (jpg, jpeg, png, gif, webp)");
-        }
-
-        // 파일 크기 제한 (5MB)
-        if (file.getSize() > 5 * 1024 * 1024) {
-            throw new IllegalArgumentException("이미지 크기는 5MB 이하여야 합니다.");
-        }
-
-        return uploadToS3(file, "profiles/", contentType);
     }
 
     private StoredFile uploadToS3(MultipartFile file, String folder, String contentType) throws IOException {
+        long start = System.currentTimeMillis();
+
         String originalName = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
         String safeOriginal = originalName.replaceAll("[\\\\/:*?\"<>|]", "_");
         String storedName = folder + UUID.randomUUID() + "-" + safeOriginal;
 
         String bucketName = awsS3Config.getBucketName();
 
-        // S3에 업로드
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(storedName)
-                .contentType(contentType)
-                .build();
+        log.info("[S3_PUT_START] bucket={} key={} filename={} size={} contentType={}",
+                bucketName,
+                storedName,
+                safeName(originalName),
+                file.getSize(),
+                contentType
+        );
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        try {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(storedName)
+                    .contentType(contentType)
+                    .build();
 
-        // S3 URL 생성
-        String url = String.format("https://%s.s3.ap-northeast-2.amazonaws.com/%s", bucketName, storedName);
+            s3Client.putObject(
+                    putObjectRequest,
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+            );
 
-        return new StoredFile(originalName, storedName, url, file.getSize());
+            // S3 URL 생성
+            String url = String.format("https://%s.s3.ap-northeast-2.amazonaws.com/%s", bucketName, storedName);
+
+            log.info("[S3_PUT_OK] key={} elapsedMs={}", storedName, System.currentTimeMillis() - start);
+
+            return new StoredFile(originalName, storedName, url, file.getSize());
+
+        } catch (Exception e) {
+            log.error("[S3_PUT_FAIL] key={} elapsedMs={}", storedName, System.currentTimeMillis() - start, e);
+            throw e;
+        }
+    }
+
+    private String safeName(String name) {
+        if (name == null) return "null";
+        // 로그 깨는 문자 제거
+        return name.replaceAll("[\\r\\n\\t]", "_");
     }
 
     public record StoredFile(String originalName, String storedName, String url, long size) {}
