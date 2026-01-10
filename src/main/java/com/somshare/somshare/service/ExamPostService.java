@@ -14,7 +14,7 @@ public interface ExamPostService {
 
     ExamPostResponse createExamPost(Long departmentId, ExamPostCreateRequest request, String username);
 
-    ExamPostResponse updateExamPost(Long departmentId, Long postId, ExamPostUpdateRequest request);
+    ExamPostResponse updateExamPost(Long departmentId, Long postId, ExamPostUpdateRequest request, String username);
 
-    void deleteExamPost(Long departmentId, Long postId);
+    void deleteExamPost(Long departmentId, Long postId, String username);
 }

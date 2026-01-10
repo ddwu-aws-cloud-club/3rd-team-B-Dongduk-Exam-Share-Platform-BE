@@ -63,7 +63,6 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // ✅ 게시글 작성/수정/삭제만 로그인 필요
-                        // (중간 ** 금지라서, deptId/postId는 *로)
                         .requestMatchers(HttpMethod.POST, "/departments/*/exam-posts").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/departments/*/exam-posts/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/departments/*/exam-posts/*").authenticated()

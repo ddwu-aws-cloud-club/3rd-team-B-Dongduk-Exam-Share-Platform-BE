@@ -44,22 +44,25 @@ public class ExamPostController {
         return examPostService.createExamPost(departmentId, request, username);
     }
 
-    // ✅ JSON 기반 수정
     @PatchMapping("/{departmentId}/exam-posts/{postId}")
     public ExamPostResponse updateExamPost(
             @PathVariable Long departmentId,
             @PathVariable Long postId,
-            @RequestBody @Valid ExamPostUpdateRequest request
+            @RequestBody @Valid ExamPostUpdateRequest request,
+            Principal principal
     ) {
-        return examPostService.updateExamPost(departmentId, postId, request);
+        String username = principal.getName();
+        return examPostService.updateExamPost(departmentId, postId, request, username);
     }
 
     @DeleteMapping("/{departmentId}/exam-posts/{postId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteExamPost(
             @PathVariable Long departmentId,
-            @PathVariable Long postId
+            @PathVariable Long postId,
+            Principal principal
     ) {
-        examPostService.deleteExamPost(departmentId, postId);
+        String username = principal.getName();
+        examPostService.deleteExamPost(departmentId, postId, username);
     }
 }

@@ -8,7 +8,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-// ExamPost.java
 @Entity
 @Getter
 @NoArgsConstructor
@@ -32,9 +31,11 @@ public class ExamPost {
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
-    // ✅ 추가
+    // 파일 메타데이터 (S3)
+    @Column(length = 500)
     private String fileKey;
 
+    @Column(length = 1000)
     private String fileUrl;
 
     @CreationTimestamp
@@ -43,8 +44,15 @@ public class ExamPost {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // ✅ 생성자 변경 (fileKey 추가)
-    public ExamPost(String title, String content, User uploader, Department department, String fileKey, String fileUrl) {
+    // 생성자 (게시글 생성)
+    public ExamPost(
+            String title,
+            String content,
+            User uploader,
+            Department department,
+            String fileKey,
+            String fileUrl
+    ) {
         this.title = title;
         this.content = content;
         this.uploader = uploader;
@@ -53,13 +61,22 @@ public class ExamPost {
         this.fileUrl = fileUrl;
     }
 
+    // 제목/내용 수정
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
     }
 
-    // ✅ 파일 교체용
+    // 파일만 교체
     public void updateFile(String fileKey, String fileUrl) {
+        this.fileKey = fileKey;
+        this.fileUrl = fileUrl;
+    }
+
+    // 제목/내용/파일 한 번에 수정 (선택적으로 쓰기)
+    public void updateAll(String title, String content, String fileKey, String fileUrl) {
+        this.title = title;
+        this.content = content;
         this.fileKey = fileKey;
         this.fileUrl = fileUrl;
     }
