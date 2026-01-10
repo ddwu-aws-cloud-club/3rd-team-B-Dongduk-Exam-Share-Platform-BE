@@ -16,3 +16,9 @@ spring:
 
 app:
   upload-dir: ./uploads
+
+logging:
+  level:
+    root: INFO
+    com.somshare: INFO
+    org.springframework.security: DEBUG
