@@ -16,19 +16,19 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  * - dev/prod 프로파일에서만 활성화
  */
 @Configuration
-@Profile({"simple", "dev", "prod"})
+@Profile({"dev", "prod"})
 public class AwsS3Config {
 
-    @Value("${aws.s3.access-key:dummy}")
+    @Value("${aws.s3.access-key}")
     private String accessKey;
 
-    @Value("${aws.s3.secret-key:dummy}")
+    @Value("${aws.s3.secret-key}")
     private String secretKey;
 
-    @Value("${aws.region:ap-northeast-2}")
+    @Value("${aws.region}")
     private String region;
 
-    @Value("${aws.s3.bucket:dummy-bucket}")
+    @Value("${aws.s3.bucket}")
     private String bucketName;
 
     /**
@@ -36,11 +36,14 @@ public class AwsS3Config {
      */
     @Bean
     public S3Client s3Client() {
-        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+        AwsBasicCredentials awsCredentials =
+                AwsBasicCredentials.create(accessKey, secretKey);
 
         return S3Client.builder()
                 .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(awsCredentials)
+                )
                 .build();
     }
 
@@ -49,11 +52,14 @@ public class AwsS3Config {
      */
     @Bean
     public S3Presigner s3Presigner() {
-        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+        AwsBasicCredentials awsCredentials =
+                AwsBasicCredentials.create(accessKey, secretKey);
 
         return S3Presigner.builder()
                 .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(awsCredentials)
+                )
                 .build();
     }
 

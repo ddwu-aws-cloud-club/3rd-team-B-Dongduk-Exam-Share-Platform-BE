@@ -29,3 +29,9 @@ aws:
     from-email: ${SES_FROM_EMAIL}
     access-key: ${AWS_SES_ACCESS_KEY}
     secret-key: ${AWS_SES_SECRET_KEY}
+
+logging:
+  level:
+    root: INFO
+    com.somshare: INFO
+    org.springframework.security: DEBUG
