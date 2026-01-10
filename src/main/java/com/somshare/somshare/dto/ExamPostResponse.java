@@ -10,6 +10,7 @@ public record ExamPostResponse(
         String content,
         Long uploaderId,
         Long departmentId,
+        String fileKey,
         String fileUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -21,6 +22,7 @@ public record ExamPostResponse(
                 post.getContent(),
                 post.getUploader().getId(),
                 post.getDepartment().getId(),
+                post.getFileKey(),
                 post.getFileUrl(),
                 post.getCreatedAt(),
                 post.getUpdatedAt()
