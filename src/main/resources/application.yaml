@@ -1,15 +1,33 @@
-server:
-  port: 8080
-
-app:
-  upload-dir: uploads
-
 spring:
+  config:
+    import: optional:file:.env[.properties] # .env 파일을 읽어오라는 설정
+
+  # 데이터베이스 설정 (.env 파일에 있는 값을 가져와서 채움)
+  datasource:
+    url: ${DB_URL}           # .env의 DB_URL 값
+    username: ${DB_USERNAME} # .env의 DB_USERNAME 값
+    password: ${DB_PASSWORD} # .env의 DB_PASSWORD 값
+    driver-class-name: org.postgresql.Driver
+
+  # JPA (데이터베이스 자동 관리)
+  jpa:
+    hibernate:
+      ddl-auto: update  # 서버 켤 때마다 테이블 구조를 자동으로 맞춰줌
+    properties:
+      hibernate:
+        format_sql: true # 실행되는 SQL을 보기 좋게 정렬
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # 파일 업로드 용량 제한 (넉넉하게 설정)
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 20MB
-  application:
-    name: somshare
-  profiles:
-    active: dev
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# AWS 설정 (.env 파일에서 가져옴)
+aws:
+  s3:
+    bucket: ${S3_BUCKET} # .env의 버킷 이름
+  access-key: ${AWS_S3_ACCESS_KEY}
+  secret-key: ${AWS_S3_SECRET_KEY}
+  region: ap-northeast-2
