@@ -23,6 +23,7 @@ public class ExamPostServiceImpl implements ExamPostService {
     private final ExamPostRepository examPostRepository;
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
+    private final S3FileStorageService s3FileStorageService;
 
     @Override
     public List<ExamPostResponse> getExamPostsByDepartment(Long departmentId) {
@@ -107,6 +108,12 @@ public class ExamPostServiceImpl implements ExamPostService {
         // 작성자만 삭제
         if (!post.getUploader().getId().equals(requester.getId())) {
             throw new SecurityException("삭제 권한이 없습니다.");
+        }
+
+        // S3에서 파일 삭제
+        String fileKey = post.getFileKey();
+        if (fileKey != null && !fileKey.isBlank()) {
+            s3FileStorageService.deleteFile(fileKey);
         }
 
         examPostRepository.delete(post);

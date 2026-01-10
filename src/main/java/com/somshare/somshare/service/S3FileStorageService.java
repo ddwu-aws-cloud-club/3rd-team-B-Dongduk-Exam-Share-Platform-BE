@@ -154,6 +154,38 @@ public class S3FileStorageService {
         }
     }
 
+    /**
+     * S3에서 파일 삭제
+     * @param fileKey S3 객체 키 (예: pdfs/uuid-filename.pdf)
+     */
+    public void deleteFile(String fileKey) {
+        if (fileKey == null || fileKey.isBlank()) {
+            log.warn("[S3_DELETE_SKIP] reason=empty_key");
+            return;
+        }
+
+        long start = System.currentTimeMillis();
+        String bucketName = awsS3Config.getBucketName();
+
+        log.info("[S3_DELETE_START] bucket={} key={}", bucketName, safeName(fileKey));
+
+        try {
+            software.amazon.awssdk.services.s3.model.DeleteObjectRequest deleteRequest =
+                    software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(fileKey)
+                            .build();
+
+            s3Client.deleteObject(deleteRequest);
+
+            log.info("[S3_DELETE_OK] key={} elapsedMs={}", safeName(fileKey), System.currentTimeMillis() - start);
+
+        } catch (Exception e) {
+            log.error("[S3_DELETE_FAIL] key={} elapsedMs={}", safeName(fileKey), System.currentTimeMillis() - start, e);
+            // 삭제 실패해도 DB 삭제는 진행되도록 예외를 던지지 않음
+        }
+    }
+
     private String safeName(String name) {
         if (name == null) return "null";
         // 로그 깨는 문자 제거
