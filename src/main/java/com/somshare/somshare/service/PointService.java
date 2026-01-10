@@ -18,13 +18,14 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class PointService {
 
     private final UserRepository userRepository;
     private final PointHistoryRepository historyRepository;
 
     // 잔액 조회
+    @Transactional(readOnly = true)
     public int getBalance(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 없습니다."));
@@ -37,7 +38,6 @@ public class PointService {
     @Value("${aws.s3.bucket}")
     private String bucketName;
 
-    @Transactional
     public void completeUploadAndEarnPoints(Long userId, String s3Key, String originalName, Long fileSize, String description) {
 
         // 유저 조회
@@ -108,6 +108,7 @@ public class PointService {
     }
 
     // 내역 조회
+    @Transactional(readOnly = true)
     public Page<PointHistoryDto> getHistory(Long userId, Pageable pageable){
         return historyRepository.findAllByUserId(userId, pageable)
                 .map(PointHistoryDto::from);
