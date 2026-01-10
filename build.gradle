@@ -54,8 +54,7 @@ dependencies {
 
     // AWS Cognito JWT 검증용
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
-
-	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1"
 }
 
 tasks.named('test') {

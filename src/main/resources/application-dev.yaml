@@ -29,3 +29,11 @@ aws:
     from-email: ${SES_FROM_EMAIL}
     access-key: ${AWS_SES_ACCESS_KEY}
     secret-key: ${AWS_SES_SECRET_KEY}
+
+logging:
+  level:
+    root: INFO
+    com.somshare: INFO
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{requestId}] %logger{36} - %msg%n"
