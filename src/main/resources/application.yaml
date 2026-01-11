@@ -13,6 +13,3 @@ spring:
     name: somshare
   profiles:
     active: dev
-  logging:
-    level:
-      org.springframework.security: DEBUG
