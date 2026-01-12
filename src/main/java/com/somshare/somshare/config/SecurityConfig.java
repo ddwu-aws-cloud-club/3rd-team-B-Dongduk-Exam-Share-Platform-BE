@@ -1,21 +1,19 @@
 // 비로그인 사용자: 게시글 조회(GET) 가능
 // 로그인 사용자: 게시글 작성/수정/삭제(POST/PATCH/DELETE) 가능
-// 권한이 분리된 SecurityConfig (전체 permitAll 아님)
-// 개발/테스트용 Basic Auth 계정: user / 1234
+// JWT 토큰 인증 적용
 
 package com.somshare.somshare.config;
 
+import com.somshare.somshare.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,21 +23,10 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    /**
-     * ✅ 개발/테스트용 로그인 계정
-     * Swagger Authorize에서 user / 1234 로 로그인 가능
-     */
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails user = User.withUsername("user")
-                .password(passwordEncoder.encode("1234")) // ✅ BCrypt 사용(PasswordEncoderConfig의 빈)
-                .roles("USER")
-                .build();
-
-        return new InMemoryUserDetailsManager(user);
-    }
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,6 +34,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
                         // ✅ OPTIONS(프리플라이트) 허용
@@ -62,7 +50,17 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // ✅ 게시글 작성/수정/삭제만 로그인 필요
+                        // ✅ 인증 API 허용 (로그인, 회원가입, 이메일 인증)
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // ✅ 파일 다운로드 허용
+                        .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
+
+                        // ✅ 족보 업로드는 로그인 필요
+                        .requestMatchers(HttpMethod.POST, "/api/posts").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/files/**").authenticated()
+
+                        // ✅ 게시글 작성/수정/삭제 로그인 필요
                         .requestMatchers(HttpMethod.POST, "/departments/*/exam-posts").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/departments/*/exam-posts/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/departments/*/exam-posts/*").authenticated()
@@ -71,8 +69,8 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
 
-                // ✅ Basic Auth 켜기 (Swagger/curl에서 테스트용)
-                .httpBasic(basic -> {});
+                // ✅ JWT 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
