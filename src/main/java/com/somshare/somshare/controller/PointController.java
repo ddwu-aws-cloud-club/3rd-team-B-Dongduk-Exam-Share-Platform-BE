@@ -1,6 +1,7 @@
 package com.somshare.somshare.controller;
 
 import com.somshare.somshare.dto.PointHistoryDto;
+import com.somshare.somshare.dto.PointHistoryResponse;
 import com.somshare.somshare.dto.PointReduceRequest;
 import com.somshare.somshare.dto.UploadCompleteRequest;
 import com.somshare.somshare.security.UserPrincipal;
@@ -54,9 +55,8 @@ public class PointController {
 
         // 서비스 호출
         String downloadUrl = pointService.reducePoints(
-                user.getId(),
+                getUserIdForSwagger(user),
                 request.getFileId(),
-                request.getPoints(),
                 request.getDescription()
         );
 
@@ -67,13 +67,15 @@ public class PointController {
     // 내역 조회
     @GetMapping("/history")
     @Operation(summary = "포인트 변동 내역 조회", description = "페이징 처리됨 (page, size, sort 파라미터 사용)")
-    public ResponseEntity<Page<PointHistoryDto>> getHistory(
+    public ResponseEntity<PointHistoryResponse> getHistory(
             @AuthenticationPrincipal UserPrincipal user,
+            @RequestParam(required = false, defaultValue = "ALL") String type,
             @Parameter(hidden = true) Pageable pageable) {
 
         Long userId = getUserIdForSwagger(user);
 
-       return ResponseEntity.ok(pointService.getHistory(userId, pageable));
+        PointHistoryResponse response = pointService.getHistory(userId, type, pageable);
+        return ResponseEntity.ok(pointService.getHistory(userId, type, pageable));
     }
 
     // 적립 -> 업로드 확인 및 적립
@@ -85,7 +87,7 @@ public class PointController {
 
         // 서비스로 넘기기
         pointService.completeUploadAndEarnPoints(
-                user.getId(),
+                getUserIdForSwagger(user),
                 request.getFileName(),
                 request.getOriginalName(),
                 request.getFileSize(),
