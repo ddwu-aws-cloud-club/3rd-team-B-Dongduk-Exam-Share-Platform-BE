@@ -50,15 +50,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = claims.get("email", String.class);
                 Long userId = Long.parseLong(claims.getSubject());
 
-                if (email != null) {
+                if (email != null && userId != null) {
+                    // UserPrincipal 생성
+                    UserPrincipal userPrincipal = new UserPrincipal(
+                            userId,
+                            email,
+                            null, // 비밀번호는 JWT에서 제외
+                            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                    );
+
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
-                                    email,
+                                    userPrincipal,
                                     null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                                    userPrincipal.getAuthorities()
                             );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    log.debug("[JWT_AUTH] User authenticated: {}", email);
+                    log.debug("[JWT_AUTH] User authenticated: {} (ID: {})", email, userId);
                 }
             } catch (ExpiredJwtException e) {
                 log.warn("[JWT_AUTH] Token expired: {}", e.getMessage());
