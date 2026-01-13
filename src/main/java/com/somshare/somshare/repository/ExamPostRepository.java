@@ -13,4 +13,7 @@ public interface ExamPostRepository extends JpaRepository<ExamPost, Long> {
 
     // 게시글 상세 조회
     Optional<ExamPost> findByIdAndDepartment_Id(Long postId, Long departmentId);
+
+    // 사용자가 업로드한 족보 개수 조회
+    Long countByUploaderId(Long uploaderId);
 }
