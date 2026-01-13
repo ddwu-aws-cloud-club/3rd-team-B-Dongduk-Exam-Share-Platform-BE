@@ -1,7 +1,9 @@
 package com.somshare.somshare.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -33,6 +35,7 @@ public class PointHistory {
 
     private int balanceAfter;
 
-    @CreatedDate
+    @CreationTimestamp
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime createdAt;
 }

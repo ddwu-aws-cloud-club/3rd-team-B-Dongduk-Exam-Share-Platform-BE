@@ -10,10 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Schema(description = "포인트 사용 요청 DTO")
 public class PointReduceRequest {
-    @Schema(description = "사용할 포인트 양")
-    @Min(1)
-    private int points;
-
     @Schema(description = "사용 사유")
     @NotBlank
     private String description;
