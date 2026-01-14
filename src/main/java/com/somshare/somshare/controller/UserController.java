@@ -1,25 +1,54 @@
 package com.somshare.somshare.controller;
 
 import com.somshare.somshare.dto.MyUploadsPageResponse;
+import com.somshare.somshare.dto.UserMeResponse;
+import com.somshare.somshare.security.UserPrincipal;
 import com.somshare.somshare.service.ExamPostService;
+import com.somshare.somshare.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
+@Tag(name = "User API", description = "사용자 정보 조회 API")
 public class UserController {
 
+    private final UserService userService;
     private final ExamPostService examPostService;
+
+    @GetMapping("/me")
+    @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 상세 정보 및 통계를 조회합니다")
+    public ResponseEntity<UserMeResponse> getMe(@AuthenticationPrincipal UserPrincipal user) {
+        if (user == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "로그인이 필요합니다. 인증 토큰을 확인해주세요."
+            );
+        }
+        UserMeResponse response = userService.getUserMe(user.getId());
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/me/uploads")
     public MyUploadsPageResponse getMyUploads(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            Principal principal
+            @AuthenticationPrincipal UserPrincipal principal
     ) {
-        return examPostService.getMyUploads(principal.getName(), page, size);
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        return examPostService.getMyUploads(principal.getUsername(), page, size);
     }
+
 }
