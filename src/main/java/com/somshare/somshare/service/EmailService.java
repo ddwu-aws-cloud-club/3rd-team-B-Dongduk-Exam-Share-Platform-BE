@@ -131,6 +131,7 @@ public class EmailService {
         // 인증 코드는 민감정보로 간주 → 원문 로그 금지
         // (원하면 끝 2자리만 노출: "****" + code.substring(code.length()-2))
         String maskedCode = "******";
+        if ("simple".equals(activeProfile)) maskedCode = code;
 
         log.info("========================================");
         log.info("📧 이메일 인증 코드 전송 (콘솔 모드)");

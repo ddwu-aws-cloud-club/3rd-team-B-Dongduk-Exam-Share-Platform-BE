@@ -17,4 +17,6 @@ public interface ExamPostService {
     ExamPostResponse updateExamPost(Long departmentId, Long postId, ExamPostUpdateRequest request, String username);
 
     void deleteExamPost(Long departmentId, Long postId, String username);
+
+    MyUploadsPageResponse getMyUploads(String username, int page, int size);
 }

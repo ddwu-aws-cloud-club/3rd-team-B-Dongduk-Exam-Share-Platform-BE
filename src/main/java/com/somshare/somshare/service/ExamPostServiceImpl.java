@@ -47,7 +47,7 @@ public class ExamPostServiceImpl implements ExamPostService {
                 content,
                 result.getTotalElements(),
                 result.getTotalPages(),
-                result.getNumber(),     // ✅ currentPage
+                result.getNumber(),     // currentPage
                 result.hasNext(),
                 result.hasPrevious()
         );
@@ -57,7 +57,7 @@ public class ExamPostServiceImpl implements ExamPostService {
         if (major == null || major.isBlank() || major.equalsIgnoreCase("all")) {
             return null;
         }
-        return major; // 현재 Department.name으로 받는 방식
+        return major;
     }
 
     private Sort toSort(String sort) {
@@ -160,6 +160,24 @@ public class ExamPostServiceImpl implements ExamPostService {
         examPostRepository.delete(post);
     }
 
+    // ✅ 마이페이지: 내 업로드 목록
+    @Override
+    public MyUploadsPageResponse getMyUploads(String username, int page, int size) {
+        if (username == null) throw new SecurityException("로그인이 필요합니다.");
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Page<MyUploadItemResponse> mapped = examPostRepository
+                .findByUploaderEmail(username, pageable)
+                .map(MyUploadItemResponse::from);
+
+        return MyUploadsPageResponse.from(mapped);
+    }
+
     private ExamPostResponse toResponse(ExamPost post) {
         return new ExamPostResponse(
                 post.getId(),
@@ -189,10 +207,9 @@ public class ExamPostServiceImpl implements ExamPostService {
                 deptName,
                 deptName,
                 post.getCreatedAt(),
-                null, // ✅ 실제 사용자 정보 넘기지 않음
+                null, // 실제 사용자 정보 넘기지 않음
                 post.getPoints(),
                 post.getDownloadCount()
         );
     }
-
 }
