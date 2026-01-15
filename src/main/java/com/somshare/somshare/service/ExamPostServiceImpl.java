@@ -33,11 +33,14 @@ public class ExamPostServiceImpl implements ExamPostService {
     }
 
     @Override
-    public ExamPostListResponse getPosts(String search, String major, int page, int size, String sort) {
+    public ExamPostListResponse getPosts(String search, String major, Long departmentId, int page, int size, String sort) {
         String departmentName = parseDepartmentNameOrNull(major);
 
         Pageable pageable = PageRequest.of(page, size, toSort(sort));
-        Page<ExamPost> result = examPostRepository.searchPosts(departmentName, search, pageable);
+
+        Page<ExamPost> result = (departmentId != null)
+                ? examPostRepository.searchPostsByDepartmentId(departmentId, departmentName, search, pageable)
+                : examPostRepository.searchPosts(departmentName, search, pageable);
 
         List<ExamPostSummaryResponse> content = result.getContent().stream()
                 .map(this::toSummaryResponse)
@@ -47,7 +50,7 @@ public class ExamPostServiceImpl implements ExamPostService {
                 content,
                 result.getTotalElements(),
                 result.getTotalPages(),
-                result.getNumber(),     // currentPage
+                result.getNumber(),
                 result.hasNext(),
                 result.hasPrevious()
         );
@@ -160,7 +163,6 @@ public class ExamPostServiceImpl implements ExamPostService {
         examPostRepository.delete(post);
     }
 
-    // ✅ 마이페이지: 내 업로드 목록
     @Override
     public MyUploadsPageResponse getMyUploads(String username, int page, int size) {
         if (username == null) throw new SecurityException("로그인이 필요합니다.");
@@ -207,7 +209,7 @@ public class ExamPostServiceImpl implements ExamPostService {
                 deptName,
                 deptName,
                 post.getCreatedAt(),
-                null, // 실제 사용자 정보 넘기지 않음
+                null,
                 post.getPoints(),
                 post.getDownloadCount()
         );

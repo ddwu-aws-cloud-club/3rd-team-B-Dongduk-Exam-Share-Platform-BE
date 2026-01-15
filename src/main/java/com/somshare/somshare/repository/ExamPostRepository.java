@@ -21,11 +21,14 @@ public interface ExamPostRepository extends JpaRepository<ExamPost, Long> {
     // 내 업로드 목록 (정렬은 pageable로)
     Page<ExamPost> findByUploaderEmail(String email, Pageable pageable);
 
+    /**
+     * (기존) major(학과명) + search 기반 검색/페이징
+     */
     @Query("""
         select p
         from ExamPost p
         join p.department d
-        where (:departmentName is null or :departmentName = '' or d.name = :departmentName)
+        where (:departmentName is null or :departmentName = '' or lower(:departmentName) = 'all' or d.name = :departmentName)
           and (
                 :search is null or :search = '' or
                 lower(p.title) like lower(concat('%', :search, '%')) or
@@ -35,6 +38,30 @@ public interface ExamPostRepository extends JpaRepository<ExamPost, Long> {
           )
         """)
     Page<ExamPost> searchPosts(
+            @Param("departmentName") String departmentName,
+            @Param("search") String search,
+            Pageable pageable
+    );
+
+    /**
+     * (추가) departmentId까지 포함한 검색/페이징
+     */
+    @Query("""
+        select p
+        from ExamPost p
+        join p.department d
+        where (:departmentId is null or d.id = :departmentId)
+          and (:departmentName is null or :departmentName = '' or lower(:departmentName) = 'all' or d.name = :departmentName)
+          and (
+                :search is null or :search = '' or
+                lower(p.title) like lower(concat('%', :search, '%')) or
+                lower(coalesce(p.content, '')) like lower(concat('%', :search, '%')) or
+                lower(coalesce(p.subject, '')) like lower(concat('%', :search, '%')) or
+                lower(coalesce(p.professor, '')) like lower(concat('%', :search, '%'))
+          )
+        """)
+    Page<ExamPost> searchPostsByDepartmentId(
+            @Param("departmentId") Long departmentId,
             @Param("departmentName") String departmentName,
             @Param("search") String search,
             Pageable pageable

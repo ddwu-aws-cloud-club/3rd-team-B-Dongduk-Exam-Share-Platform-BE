@@ -8,7 +8,7 @@ public interface ExamPostService {
 
     List<ExamPostResponse> getExamPostsByDepartment(Long departmentId);
 
-    ExamPostListResponse getPosts(String search, String major, int page, int size, String sort);
+    ExamPostListResponse getPosts(String search, String major, Long departmentId, int page, int size, String sort);
 
     ExamPostResponse getExamPostDetail(Long departmentId, Long postId);
 
