@@ -3,8 +3,11 @@ package com.somshare.somshare.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public record ExamPostUpdateRequest(
-        @NotBlank String title,
+        String title,
         String content,
+        String subject,
+        String professor,
         String fileKey,
         String fileUrl
 ) {}
+
