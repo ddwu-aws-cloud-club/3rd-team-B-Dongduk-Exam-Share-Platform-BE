@@ -1,10 +1,9 @@
 package com.somshare.somshare.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -14,6 +13,8 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
+@AllArgsConstructor
+@Builder
 public class PointHistory {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,15 +33,9 @@ public class PointHistory {
 
     private String description;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
+    private int balanceAfter;
 
-    @Builder
-    public PointHistory(User user, Long fileId, int amount, PointType type, String description) {
-        this.user = user;
-        this.fileId = fileId;
-        this.amount = amount;
-        this.type = type;
-        this.description = description;
-    }
+    @CreationTimestamp
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDateTime createdAt;
 }
