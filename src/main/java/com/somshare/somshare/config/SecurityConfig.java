@@ -54,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // 사용자 정보 조회는 로그인 필요
-                        .requestMatchers("/api/users/me").authenticated()
+                        .requestMatchers("/api/users/me/**").authenticated()
 
                         // 파일 다운로드 허용
                         .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()

@@ -27,4 +27,8 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, Long
     // 총 다운로드 횟수 (포인트 사용 = 다운로드)
     @Query("SELECT COUNT(ph) FROM PointHistory ph WHERE ph.user.id = :userId AND ph.type = 'REDUCE'")
     Long countDownloads(@Param("userId") Long userId);
+
+    // 다운로드 목록 조회 (Post와 JOIN)
+    @Query("SELECT ph FROM PointHistory ph WHERE ph.user.id = :userId AND ph.type = 'REDUCE' ORDER BY ph.createdAt DESC")
+    Page<PointHistory> findDownloadsByUserId(@Param("userId") Long userId, Pageable pageable);
 }
