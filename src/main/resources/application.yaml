@@ -1,15 +1,19 @@
 server:
   port: 8080
 
-app:
-  upload-dir: uploads
-
 spring:
-  servlet:
-    multipart:
-      max-file-size: 20MB
-      max-request-size: 20MB
   application:
     name: somshare
   profiles:
     active: dev
+
+app:
+  upload-dir: ./uploads
+
+logging:
+  level:
+    root: INFO
+    com.somshare: INFO
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{requestId}] %logger{36} - %msg%n"
