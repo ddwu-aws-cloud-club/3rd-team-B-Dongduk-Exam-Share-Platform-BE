@@ -1,12 +1,18 @@
 package com.somshare.somshare.service;
 
+import com.somshare.somshare.config.CollegeConfig;
+import com.somshare.somshare.domain.PointHistory;
+import com.somshare.somshare.domain.PointType;
 import com.somshare.somshare.domain.Post;
 import com.somshare.somshare.domain.RatingType;
 import com.somshare.somshare.domain.User;
+import com.somshare.somshare.dto.MyUploadItemResponse;
+import com.somshare.somshare.dto.MyUploadsPageResponse;
 import com.somshare.somshare.dto.PostListResponse;
 import com.somshare.somshare.dto.PostUpdateRequest;
 import com.somshare.somshare.dto.PostUploadResponse;
 import com.somshare.somshare.repository.DownloadRepository;
+import com.somshare.somshare.repository.PointHistoryRepository;
 import com.somshare.somshare.repository.PostRepository;
 import com.somshare.somshare.repository.RatingRepository;
 import com.somshare.somshare.repository.UserRepository;
@@ -20,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -34,7 +41,9 @@ public class PostService {
     private final UserRepository userRepository;
     private final DownloadRepository downloadRepository;
     private final RatingRepository ratingRepository;
+    private final PointHistoryRepository pointHistoryRepository;
     private final S3FileStorageService s3FileStorageService;
+    private final CollegeConfig collegeConfig;
 
     @Transactional
     public PostUploadResponse uploadPost(
@@ -71,6 +80,17 @@ public class PostService {
         // 3. 포인트 적립
         uploader.addPoints(UPLOAD_REWARD_POINTS);
 
+        // 4. 포인트 히스토리 기록
+        PointHistory pointHistory = PointHistory.builder()
+                .user(uploader)
+                .fileId(savedPost.getId())
+                .amount(UPLOAD_REWARD_POINTS)
+                .type(PointType.UPLOAD)
+                .description("족보 업로드: " + title)
+                .balanceAfter(uploader.getPoints())
+                .build();
+        pointHistoryRepository.save(pointHistory);
+
         log.info("[POST_UPLOAD_OK] userId={} postId={} earnedPoints={}",
                 uploader.getId(), savedPost.getId(), UPLOAD_REWARD_POINTS);
 
@@ -81,10 +101,24 @@ public class PostService {
         );
     }
 
-    public PostListResponse getPosts(String search, String major, int page, int size) {
+    public PostListResponse getPosts(String search, String major, String college, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "uploadDate"));
 
-        Page<Post> postPage = postRepository.searchPosts(major, search, pageRequest);
+        Page<Post> postPage;
+
+        // 단과대학 필터가 있으면 해당 단과대학의 모든 전공으로 필터링
+        if (college != null && !college.isEmpty()) {
+            List<String> collegeMajors = collegeConfig.getMajorsByCollege(college);
+            if (!collegeMajors.isEmpty()) {
+                postPage = postRepository.searchPostsByMajors(collegeMajors, search, pageRequest);
+            } else {
+                // 잘못된 단과대학 이름이면 빈 결과 반환
+                postPage = postRepository.searchPosts(null, search, pageRequest);
+            }
+        } else {
+            // 단과대학 필터가 없으면 기존 로직 사용
+            postPage = postRepository.searchPosts(major, search, pageRequest);
+        }
 
         var content = postPage.getContent().stream()
                 .map(post -> PostListResponse.PostSummary.builder()
@@ -170,5 +204,21 @@ public class PostService {
         postRepository.delete(post);
 
         log.info("[POST_DELETE_OK] userId={} postId={}", user.getId(), postId);
+    }
+
+    /**
+     * 사용자의 업로드 내역 조회 (페이징)
+     */
+    public MyUploadsPageResponse getMyUploads(Long userId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        Page<Post> postPage = postRepository.findByUploaderIdOrderByUploadDateDesc(userId, pageRequest);
+
+        Page<MyUploadItemResponse> responsePage = postPage.map(post -> {
+            long downloadCount = downloadRepository.countByPostId(post.getId());
+            return MyUploadItemResponse.from(post, downloadCount, UPLOAD_REWARD_POINTS);
+        });
+
+        return MyUploadsPageResponse.from(responsePage);
     }
 }

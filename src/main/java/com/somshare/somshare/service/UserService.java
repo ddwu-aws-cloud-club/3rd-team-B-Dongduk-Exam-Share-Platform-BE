@@ -7,8 +7,8 @@ import com.somshare.somshare.dto.MyDownloadsPageResponse;
 import com.somshare.somshare.dto.UserMeResponse;
 import com.somshare.somshare.exception.UserNotFoundException;
 import com.somshare.somshare.repository.DownloadRepository;
-import com.somshare.somshare.repository.ExamPostRepository;
 import com.somshare.somshare.repository.PointHistoryRepository;
+import com.somshare.somshare.repository.PostRepository;
 import com.somshare.somshare.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,7 +24,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final ExamPostRepository examPostRepository;
+    private final PostRepository postRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final DownloadRepository downloadRepository;
 
@@ -38,9 +38,9 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        // 통계 정보 조회
-        Long totalUploads = examPostRepository.countByUploaderId(userId);
-        Long totalDownloads = pointHistoryRepository.countDownloads(userId);
+        // 통계 정보 조회 (Post 테이블에서 업로드 수 조회)
+        Long totalUploads = postRepository.countByUploaderId(userId);
+        Long totalDownloads = downloadRepository.countByUserId(userId);
         Integer totalEarnedPoints = pointHistoryRepository.getTotalEarnedPoints(userId);
         Integer totalSpentPoints = pointHistoryRepository.getTotalSpentPoints(userId);
 

@@ -33,11 +33,12 @@ public class PostController {
     public PostListResponse getPosts(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String major,
+            @RequestParam(required = false) String college,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        log.info("[POST_LIST_REQ] search={} major={} page={} size={}", search, major, page, size);
-        return postService.getPosts(search, major, page, size);
+        log.info("[POST_LIST_REQ] search={} major={} college={} page={} size={}", search, major, college, page, size);
+        return postService.getPosts(search, major, college, page, size);
     }
 
     @PostMapping

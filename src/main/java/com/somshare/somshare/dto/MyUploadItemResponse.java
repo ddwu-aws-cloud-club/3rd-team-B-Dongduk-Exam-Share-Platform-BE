@@ -1,6 +1,7 @@
 package com.somshare.somshare.dto;
 
 import com.somshare.somshare.domain.ExamPost;
+import com.somshare.somshare.domain.Post;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -26,6 +27,19 @@ public class MyUploadItemResponse {
                 post.getCreatedAt(),
                 post.getDownloadCount(),
                 post.getPoints()
+        );
+    }
+
+    // Post 엔티티용 팩토리 메서드
+    public static MyUploadItemResponse from(Post post, long downloadCount, long earnedPoints) {
+        return new MyUploadItemResponse(
+                post.getId(),
+                post.getTitle(),
+                post.getSubject(),
+                post.getProfessor(),
+                post.getUploadDate(),
+                downloadCount,
+                earnedPoints
         );
     }
 }

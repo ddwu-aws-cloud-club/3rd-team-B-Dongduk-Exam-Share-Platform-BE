@@ -4,7 +4,7 @@ import com.somshare.somshare.dto.MyDownloadsPageResponse;
 import com.somshare.somshare.dto.MyUploadsPageResponse;
 import com.somshare.somshare.dto.UserMeResponse;
 import com.somshare.somshare.security.UserPrincipal;
-import com.somshare.somshare.service.ExamPostService;
+import com.somshare.somshare.service.PostService;
 import com.somshare.somshare.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +27,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final ExamPostService examPostService;
+    private final PostService postService;
 
     @GetMapping("/me")
     @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 상세 정보 및 통계를 조회합니다")
@@ -42,15 +42,16 @@ public class UserController {
     }
 
     @GetMapping("/me/uploads")
+    @Operation(summary = "내 업로드 내역 조회", description = "현재 로그인한 사용자의 업로드 내역을 페이징 조회합니다")
     public MyUploadsPageResponse getMyUploads(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal UserPrincipal principal
+            @AuthenticationPrincipal UserPrincipal user
     ) {
-        if (principal == null) {
+        if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
-        return examPostService.getMyUploads(principal.getUsername(), page, size);
+        return postService.getMyUploads(user.getId(), page, size);
     }
 
     @GetMapping("/me/downloaded-posts")
