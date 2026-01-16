@@ -74,5 +74,6 @@ DB_PASSWORD=실제_비밀번호
 
 ## System Architecture
 
-<img width="626" height="620" alt="스크린샷 2025-12-31 160549" src="https://github.com/user-attachments/assets/46d5321c-5e24-4f6f-a0d2-d4e354a879b3" />
+<img width="684" height="699" alt="aws" src="https://github.com/user-attachments/assets/d3aa794f-f098-4d52-af21-1db2496524dc" />
+
 
