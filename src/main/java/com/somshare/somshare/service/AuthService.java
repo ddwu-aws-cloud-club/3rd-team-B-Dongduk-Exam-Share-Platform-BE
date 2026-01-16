@@ -90,7 +90,7 @@ public class AuthService {
         // JWT 토큰 생성
         String token = generateToken(user);
 
-        return LoginResponse.of(token, user.getEmail(), user.getPoints(), user.getIsVerified());
+        return LoginResponse.of(token, user);
     }
 
     @Transactional
