@@ -9,6 +9,7 @@ import com.somshare.somshare.exception.UserNotFoundException;
 import com.somshare.somshare.repository.DownloadRepository;
 import com.somshare.somshare.repository.ExamPostRepository;
 import com.somshare.somshare.repository.PointHistoryRepository;
+import com.somshare.somshare.repository.PostRepository;
 import com.somshare.somshare.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
