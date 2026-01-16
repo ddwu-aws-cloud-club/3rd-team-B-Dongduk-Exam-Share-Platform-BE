@@ -18,6 +18,7 @@ public interface ExamPostRepository extends JpaRepository<ExamPost, Long> {
     // 게시글 상세 조회
     Optional<ExamPost> findByIdAndDepartment_Id(Long postId, Long departmentId);
 
+
     // 내 업로드 목록 (정렬은 pageable로)
     Page<ExamPost> findByUploaderEmail(String email, Pageable pageable);
 

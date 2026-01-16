@@ -7,8 +7,11 @@ import com.somshare.somshare.security.UserPrincipal;
 import com.somshare.somshare.service.PostService;
 import com.somshare.somshare.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,6 +40,7 @@ public class UserController {
                     HttpStatus.UNAUTHORIZED, "로그인이 필요합니다. 인증 토큰을 확인해주세요."
             );
         }
+
         UserMeResponse response = userService.getUserMe(user.getId());
         return ResponseEntity.ok(response);
     }
