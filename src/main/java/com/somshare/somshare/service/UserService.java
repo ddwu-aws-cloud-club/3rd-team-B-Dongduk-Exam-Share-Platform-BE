@@ -1,14 +1,22 @@
 package com.somshare.somshare.service;
 
+import com.somshare.somshare.domain.Download;
 import com.somshare.somshare.domain.User;
+import com.somshare.somshare.dto.MyDownloadItemResponse;
+import com.somshare.somshare.dto.MyDownloadsPageResponse;
 import com.somshare.somshare.dto.UserMeResponse;
 import com.somshare.somshare.exception.UserNotFoundException;
+import com.somshare.somshare.repository.DownloadRepository;
 import com.somshare.somshare.repository.ExamPostRepository;
 import com.somshare.somshare.repository.PointHistoryRepository;
 import com.somshare.somshare.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ExamPostRepository examPostRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final DownloadRepository downloadRepository;
 
     /**
      * 현재 로그인한 사용자의 상세 정보 조회
@@ -36,5 +45,29 @@ public class UserService {
         Integer totalSpentPoints = pointHistoryRepository.getTotalSpentPoints(userId);
 
         return UserMeResponse.of(user, totalUploads, totalDownloads, totalEarnedPoints, totalSpentPoints);
+    }
+
+    /**
+     * 사용자가 다운로드한 게시글 ID 목록 조회
+     * @param userId 사용자 ID
+     * @return 다운로드한 게시글 ID 목록
+     */
+    public List<Long> getDownloadedPostIds(Long userId) {
+        return downloadRepository.findPostIdsByUserId(userId);
+    }
+
+    /**
+     * 사용자의 다운로드 내역 조회 (페이징)
+     * @param userId 사용자 ID
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return 다운로드 내역 페이지 응답
+     */
+    public MyDownloadsPageResponse getMyDownloads(Long userId, int page, int size) {
+        Page<Download> downloadPage = downloadRepository.findByUserIdOrderByDownloadedAtDesc(
+                userId, PageRequest.of(page, size));
+
+        Page<MyDownloadItemResponse> responsePage = downloadPage.map(MyDownloadItemResponse::from);
+        return MyDownloadsPageResponse.from(responsePage);
     }
 }

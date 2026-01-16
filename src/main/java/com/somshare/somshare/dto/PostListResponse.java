@@ -20,9 +20,12 @@ public record PostListResponse(
             String professor,
             String major,
             String uploadDate,
+            Long uploaderId,
             String uploaderNickname,
             int downloadCount,
-            int points
+            int points,
+            long likeCount,
+            long dislikeCount
     ) {
     }
 }

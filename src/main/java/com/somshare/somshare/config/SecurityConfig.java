@@ -59,8 +59,11 @@ public class SecurityConfig {
                         // 파일 다운로드 허용
                         .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
 
-                        // 족보 업로드는 로그인 필요
+                        // 족보 업로드/수정/삭제는 로그인 필요
                         .requestMatchers(HttpMethod.POST, "/api/posts").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/posts/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/*/rate").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/files/**").authenticated()
 
                         // 게시글 작성/수정/삭제 로그인 필요
@@ -81,10 +84,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        // credentials를 true로 설정하면 allowedOriginPatterns를 사용해야 함
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(false);
+        configuration.setAllowCredentials(true); // 쿠키 전송을 위해 true로 변경
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
