@@ -144,6 +144,7 @@ public class ExamPostController {
         }
     }
 
+
     private String safe(String s) {
         if (s == null) return "";
         return s.replaceAll("[\\r\\n\\t]", "_");

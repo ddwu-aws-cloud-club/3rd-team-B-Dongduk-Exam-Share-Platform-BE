@@ -1,5 +1,6 @@
 package com.somshare.somshare.exception;
 
+import com.somshare.somshare.dto.AlreadyDownloadedResponse;
 import com.somshare.somshare.dto.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -84,6 +85,32 @@ public class GlobalExceptionHandler {
         log.warn("[UPLOAD_INVALID_FILE_TYPE] {}", e.getMessage(), e);
         ErrorResponse error = ErrorResponse.of(e.getMessage(), HttpStatus.BAD_REQUEST.value());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePostNotFound(PostNotFoundException e) {
+        log.warn("[POST_NOT_FOUND] {}", e.getMessage(), e);
+        ErrorResponse error = ErrorResponse.of(e.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(InsufficientPointsException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientPoints(InsufficientPointsException e) {
+        log.warn("[INSUFFICIENT_POINTS] {}", e.getMessage(), e);
+        ErrorResponse error = ErrorResponse.of(e.getMessage(), HttpStatus.PAYMENT_REQUIRED.value());
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(error);
+    }
+
+    @ExceptionHandler(AlreadyDownloadedException.class)
+    public ResponseEntity<AlreadyDownloadedResponse> handleAlreadyDownloaded(AlreadyDownloadedException e) {
+        log.info("[ALREADY_DOWNLOADED] {}", e.getMessage());
+        AlreadyDownloadedResponse response = AlreadyDownloadedResponse.builder()
+                .message(e.getMessage())
+                .status(HttpStatus.CONFLICT.value())
+                .pdfUrl(e.getPdfUrl())
+                .fileName(e.getFileName())
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(FileSizeExceededException.class)

@@ -1,14 +1,14 @@
 package com.somshare.somshare.service;
 
-import com.somshare.somshare.dto.ExamPostCreateRequest;
-import com.somshare.somshare.dto.ExamPostResponse;
-import com.somshare.somshare.dto.ExamPostUpdateRequest;
+import com.somshare.somshare.dto.*;
 
 import java.util.List;
 
 public interface ExamPostService {
 
     List<ExamPostResponse> getExamPostsByDepartment(Long departmentId);
+
+    ExamPostListResponse getPosts(String search, String major, int page, int size, String sort);
 
     ExamPostResponse getExamPostDetail(Long departmentId, Long postId);
 
@@ -17,4 +17,6 @@ public interface ExamPostService {
     ExamPostResponse updateExamPost(Long departmentId, Long postId, ExamPostUpdateRequest request, String username);
 
     void deleteExamPost(Long departmentId, Long postId, String username);
+
+    MyUploadsPageResponse getMyUploads(String username, int page, int size);
 }

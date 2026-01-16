@@ -112,7 +112,7 @@ class PointServiceTest {
         given(userRepository.findByIdForUpdate(1L)).willReturn(Optional.of(testUser));
 
         // 중복 구매 아님 (false)
-        given(historyRepository.existsByUserIdAndFileIdAndType(1L, fileId, PointType.REDUCE)) // REDUCE 확인!
+        given(historyRepository.existsByUserIdAndFileIdAndType(1L, fileId, PointType.DOWNLOAD)) // REDUCE 확인!
                 .willReturn(false);
 
         // URL 발급 요청하면 가짜 주소 리턴
@@ -120,7 +120,7 @@ class PointServiceTest {
                 .willReturn("https://s3-url.com/download");
 
         // When
-        String url = pointService.reducePoints(1L, fileId, 50, "다운로드");
+        String url = pointService.reducePoints(1L, fileId,  "다운로드");
 
         // Then
         assertThat(testUser.getPoints()).isEqualTo(950); // 1000 - 50
@@ -136,14 +136,14 @@ class PointServiceTest {
         given(userRepository.findByIdForUpdate(1L)).willReturn(Optional.of(testUser));
 
         // 이미 샀음! (True)
-        given(historyRepository.existsByUserIdAndFileIdAndType(1L, fileId, PointType.REDUCE))
+        given(historyRepository.existsByUserIdAndFileIdAndType(1L, fileId, PointType.DOWNLOAD))
                 .willReturn(true);
 
         given(s3DownloadService.generatePresignedGetUrl(anyString()))
                 .willReturn("https://s3-url.com/download");
 
         // When
-        String url = pointService.reducePoints(1L, fileId, 50, "재다운로드");
+        String url = pointService.reducePoints(1L, fileId, "재다운로드");
 
         // Then
         assertThat(testUser.getPoints()).isEqualTo(1000); // 깎이면 안됨!

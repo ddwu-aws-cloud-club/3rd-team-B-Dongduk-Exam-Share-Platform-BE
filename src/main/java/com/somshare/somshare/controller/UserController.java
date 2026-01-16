@@ -18,22 +18,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.Authentication;
 
 @RestController
-@RequestMapping("/api/users")
 @RequiredArgsConstructor
+@RequestMapping("/api/users")
 @Tag(name = "User API", description = "사용자 정보 조회 API")
 public class UserController {
 
     private final UserService userService;
+    private final ExamPostService examPostService;
 
-    /**
-     * 현재 로그인한 사용자의 상세 정보 조회
-     * JWT 토큰에서 사용자 ID를 추출하여 조회
-     *
-     * @param user JWT 토큰으로 인증된 사용자 정보
-     * @return UserMeResponse 사용자 상세 정보 및 통계
-     */
     @GetMapping("/me")
     @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 상세 정보 및 통계를 조회합니다")
     public ResponseEntity<UserMeResponse> getMe(@AuthenticationPrincipal UserPrincipal user) {

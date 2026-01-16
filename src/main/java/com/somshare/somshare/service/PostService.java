@@ -2,9 +2,14 @@ package com.somshare.somshare.service;
 
 import com.somshare.somshare.domain.Post;
 import com.somshare.somshare.domain.User;
+import com.somshare.somshare.dto.PostListResponse;
 import com.somshare.somshare.dto.PostUploadResponse;
+import com.somshare.somshare.repository.DownloadRepository;
 import com.somshare.somshare.repository.PostRepository;
 import com.somshare.somshare.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,9 +25,11 @@ import java.io.IOException;
 public class PostService {
 
     private static final int UPLOAD_REWARD_POINTS = 100;
+    private static final int DOWNLOAD_COST = 50;
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final DownloadRepository downloadRepository;
     private final S3FileStorageService s3FileStorageService;
 
     @Transactional
@@ -68,5 +75,34 @@ public class PostService {
                 UPLOAD_REWARD_POINTS,
                 "족보가 성공적으로 업로드되었습니다. " + UPLOAD_REWARD_POINTS + "P가 적립되었습니다."
         );
+    }
+
+    public PostListResponse getPosts(String search, String major, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "uploadDate"));
+
+        Page<Post> postPage = postRepository.searchPosts(major, search, pageRequest);
+
+        var content = postPage.getContent().stream()
+                .map(post -> PostListResponse.PostSummary.builder()
+                        .id(post.getId())
+                        .title(post.getTitle())
+                        .subject(post.getSubject())
+                        .professor(post.getProfessor())
+                        .major(post.getMajor())
+                        .uploadDate(post.getUploadDate().toLocalDate().toString())
+                        .uploaderNickname(post.getUploader().getNickname() != null
+                                ? post.getUploader().getNickname()
+                                : "익명")
+                        .downloadCount((int) downloadRepository.countByPostId(post.getId()))
+                        .points(DOWNLOAD_COST)
+                        .build())
+                .toList();
+
+        return PostListResponse.builder()
+                .content(content)
+                .totalElements(postPage.getTotalElements())
+                .totalPages(postPage.getTotalPages())
+                .currentPage(postPage.getNumber())
+                .build();
     }
 }
