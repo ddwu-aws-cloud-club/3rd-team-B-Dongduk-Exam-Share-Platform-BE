@@ -1,5 +1,6 @@
 package com.somshare.somshare.dto;
 
+import com.somshare.somshare.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,16 +11,12 @@ import lombok.Getter;
 public class LoginResponse {
 
     private String token;
-    private String email;
-    private Integer points;
-    private Boolean isVerified;
+    private LoginUserDto user;
 
-    public static LoginResponse of(String token, String email, Integer points, Boolean isVerified) {
+    public static LoginResponse of(String token, User user) {
         return LoginResponse.builder()
                 .token(token)
-                .email(email)
-                .points(points)
-                .isVerified(isVerified)
+                .user(LoginUserDto.from(user))
                 .build();
     }
 }
