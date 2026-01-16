@@ -1,21 +1,23 @@
 package com.somshare.somshare.service;
 
-import com.somshare.somshare.domain.Post;
-import com.somshare.somshare.domain.PointHistory;
+import com.somshare.somshare.domain.Download;
 import com.somshare.somshare.domain.User;
-import com.somshare.somshare.dto.DownloadHistoryResponse;
-import com.somshare.somshare.dto.DownloadItemDto;
+import com.somshare.somshare.dto.MyDownloadItemResponse;
+import com.somshare.somshare.dto.MyDownloadsPageResponse;
 import com.somshare.somshare.dto.UserMeResponse;
 import com.somshare.somshare.exception.UserNotFoundException;
+import com.somshare.somshare.repository.DownloadRepository;
 import com.somshare.somshare.repository.ExamPostRepository;
 import com.somshare.somshare.repository.PointHistoryRepository;
 import com.somshare.somshare.repository.PostRepository;
 import com.somshare.somshare.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ExamPostRepository examPostRepository;
     private final PointHistoryRepository pointHistoryRepository;
-    private final PostRepository postRepository;
+    private final DownloadRepository downloadRepository;
 
     /**
      * 현재 로그인한 사용자의 상세 정보 조회
@@ -47,47 +49,26 @@ public class UserService {
     }
 
     /**
-     * 현재 로그인한 사용자의 다운로드 목록 조회
-     * @param userId JWT 토큰에서 추출한 사용자 ID
-     * @param pageable 페이징 정보
-     * @return DownloadHistoryResponse 다운로드 목록
+     * 사용자가 다운로드한 게시글 ID 목록 조회
+     * @param userId 사용자 ID
+     * @return 다운로드한 게시글 ID 목록
      */
-    public DownloadHistoryResponse getMyDownloads(Long userId, Pageable pageable) {
-        // 다운로드 내역 조회 (PointHistory - type=REDUCE)
-        Page<PointHistory> downloadHistory = pointHistoryRepository.findDownloadsByUserId(userId, pageable);
+    public List<Long> getDownloadedPostIds(Long userId) {
+        return downloadRepository.findPostIdsByUserId(userId);
+    }
 
-        // PointHistory -> DownloadItemDto 변환
-        Page<DownloadItemDto> downloadItems = downloadHistory.map(history -> {
-            // Post 조회 (fileId = postId)
-            Post post = postRepository.findById(history.getFileId())
-                    .orElse(null); // Post가 삭제된 경우 null
+    /**
+     * 사용자의 다운로드 내역 조회 (페이징)
+     * @param userId 사용자 ID
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return 다운로드 내역 페이지 응답
+     */
+    public MyDownloadsPageResponse getMyDownloads(Long userId, int page, int size) {
+        Page<Download> downloadPage = downloadRepository.findByUserIdOrderByDownloadedAtDesc(
+                userId, PageRequest.of(page, size));
 
-            if (post == null) {
-                // Post가 없는 경우 기본값으로 처리
-                return DownloadItemDto.of(
-                        history.getId(),
-                        history.getFileId(),
-                        "삭제된 게시글",
-                        "-",
-                        "-",
-                        history.getCreatedAt(),
-                        history.getAmount(),
-                        null
-                );
-            }
-
-            return DownloadItemDto.of(
-                    history.getId(),
-                    post.getId(),
-                    post.getTitle(),
-                    post.getSubject(),
-                    post.getProfessor(),
-                    history.getCreatedAt(),
-                    history.getAmount(),
-                    post.getPdfUrl()
-            );
-        });
-
-        return DownloadHistoryResponse.from(downloadItems);
+        Page<MyDownloadItemResponse> responsePage = downloadPage.map(MyDownloadItemResponse::from);
+        return MyDownloadsPageResponse.from(responsePage);
     }
 }

@@ -3,8 +3,11 @@ package com.somshare.somshare.controller;
 import com.somshare.somshare.dto.*;
 import com.somshare.somshare.service.AuthService;
 import com.somshare.somshare.service.VerificationService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,8 +40,20 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse httpResponse) {
         LoginResponse response = authService.login(request);
+
+        // HttpOnly 쿠키에 토큰 저장 (7일 유효)
+        ResponseCookie cookie = ResponseCookie.from("accessToken", response.getToken())
+                .httpOnly(true)
+                .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true로 변경
+                .path("/")
+                .maxAge(60 * 60 * 24 * 7) // 7일
+                .sameSite("Lax")
+                .build();
+
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return ResponseEntity.ok(response);
     }
 

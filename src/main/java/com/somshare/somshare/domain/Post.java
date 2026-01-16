@@ -54,4 +54,11 @@ public class Post {
         this.pdfKey = pdfKey;
         this.uploader = uploader;
     }
+
+    public void update(String title, String subject, String professor, String major) {
+        this.title = title;
+        this.subject = subject;
+        this.professor = professor;
+        this.major = major;
+    }
 }
