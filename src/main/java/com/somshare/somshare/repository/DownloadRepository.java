@@ -27,4 +27,7 @@ public interface DownloadRepository extends JpaRepository<Download, Long> {
 
     // 사용자의 다운로드 내역 페이징 조회
     Page<Download> findByUserIdOrderByDownloadedAtDesc(Long userId, Pageable pageable);
+
+    // 사용자의 총 다운로드 수
+    Long countByUserId(Long userId);
 }

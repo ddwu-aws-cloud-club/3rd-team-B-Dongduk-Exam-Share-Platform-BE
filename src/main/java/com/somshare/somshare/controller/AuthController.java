@@ -65,4 +65,20 @@ public class AuthController {
         ProfileSetupResponse response = authService.setupProfile(email, request);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        // HttpOnly 쿠키 삭제 (maxAge=0으로 즉시 만료)
+        ResponseCookie cookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true로 변경
+                .path("/")
+                .maxAge(0) // 즉시 만료
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok().build();
+    }
 }
